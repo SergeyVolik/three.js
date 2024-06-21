@@ -26,19 +26,11 @@
 			let camera, scene, renderer, stats;
 
 			let mesh;
-			const amountPerLine = 60;
+			const amountPerLine = 50;
 			const count = Math.pow( amountPerLine, 3 );
 			const dummy = new THREE.Object3D();
-			let workerDataArray = [];
-			let workersFinishedCount = 0;
-			init();
 
-			function finishRender()
-			{
-				mesh.instanceMatrix.needsUpdate = true;
-				mesh.computeBoundingSphere();
-				renderer.render( scene, camera );				
-			}
+			init();
 
 			function init() {
 
@@ -48,37 +40,6 @@
 				camera.lookAt( 0, 0, 0 );
 
 				scene = new THREE.Scene();
-
-				for (let index = 0; index < amountPerLine; index++) {
-					let worker = new Worker("../worker.js");
-
-					worker.onmessage = function(event)
-					{
-						console.log("worker result");
-						workersFinishedCount++;
-
-						if(workersFinishedCount >= amountPerLine)
-						{
-							finishRender();
-						}
-					};
-
-					let workerData = 
-					{
-						amout: amountPerLine,
-						offset: 0,
-						time: 0,
-						z: index,
-						workerArray: []
-					};
-
-					let workerObj = {
-						worket: worker,
-						workerData : workerData
-					};
-					
-					workerDataArray.push(workerObj);
-				}
 
 				const loader = new THREE.BufferGeometryLoader();
 				loader.load('models/json/suzanne_buffergeometry.json', function ( geometry ) {
@@ -159,9 +120,7 @@
 							mesh.setMatrixAt( i ++, dummy.matrix );
 
 						}
-
 					}
-
 				}
 			}
 
@@ -225,7 +184,6 @@
 				}
 
 				renderer.render( scene, camera );
-
 			}
 			
 
