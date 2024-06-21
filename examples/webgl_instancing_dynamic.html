@@ -26,11 +26,19 @@
 			let camera, scene, renderer, stats;
 
 			let mesh;
-			const amountPerLine = 50;
+			const amountPerLine = 60;
 			const count = Math.pow( amountPerLine, 3 );
 			const dummy = new THREE.Object3D();
-
+			let workerDataArray = [];
+			let workersFinishedCount = 0;
 			init();
+
+			function finishRender()
+			{
+				mesh.instanceMatrix.needsUpdate = true;
+				mesh.computeBoundingSphere();
+				renderer.render( scene, camera );				
+			}
 
 			function init() {
 
@@ -41,8 +49,39 @@
 
 				scene = new THREE.Scene();
 
+				for (let index = 0; index < amountPerLine; index++) {
+					let worker = new Worker("../worker.js");
+
+					worker.onmessage = function(event)
+					{
+						console.log("worker result");
+						workersFinishedCount++;
+
+						if(workersFinishedCount >= amountPerLine)
+						{
+							finishRender();
+						}
+					};
+
+					let workerData = 
+					{
+						amout: amountPerLine,
+						offset: 0,
+						time: 0,
+						z: index,
+						workerArray: []
+					};
+
+					let workerObj = {
+						worket: worker,
+						workerData : workerData
+					};
+					
+					workerDataArray.push(workerObj);
+				}
+
 				const loader = new THREE.BufferGeometryLoader();
-				loader.load( 'models/json/suzanne_buffergeometry.json', function ( geometry ) {
+				loader.load('models/json/suzanne_buffergeometry.json', function ( geometry ) {
 
 					geometry.computeVertexNormals();
 					geometry.scale( 0.5, 0.5, 0.5 );
@@ -97,7 +136,7 @@
 				var t0 = performance.now();
 				render();				
 				var t1 = performance.now();
-				console.log("animate time " + (t1 - t0) + " milliseconds.");
+				// console.log("animate time " + (t1 - t0) + " milliseconds.");
 
 				stats.update();
 			}
@@ -139,49 +178,28 @@
 				//prev code
 				for ( let x = 0; x < amount; x ++ ) {
 
+					let offsetX = offset - x;
+					let rotX = Math.sin( x / rotYDiv + time );
+
 					for ( let y = 0; y < amount; y ++ ) {
 
+						let offsetY = offset - y;
+						let rotY = Math.sin( y / rotYDiv + time );
+						let sumRot = rotX + rotY;
 						for ( let z = 0; z < amount; z ++ ) {
 
-							vec.x = offset - x;
-							vec.y = offset - y;
+							vec.x = offsetX;
+							vec.y = offsetY;
 							vec.z = offset - z;
-
-							// vec.set( offset - x, offset - y, offset - z );
-							rot.y = ( Math.sin( x / rotYDiv + time ) + Math.sin( y / rotYDiv + time ) + Math.sin( z / rotYDiv + time ) );
+							rot.y = (sumRot + Math.sin( z / rotYDiv + time ) );
 							rot.z = rot.y * rotZMult;
 
 							dummy.updateMatrix();
 
 							mesh.setMatrixAt(i ++, mat);
-
 						}
 					}
 				}
-			}
-
-			function renderLoopTest2(amount, offset, time, dummy)
-			{
-				const len = count;
-				const columns = amount * amount * amount;
-				const depth = amount * amount;
-				const rotZMult = 2;
-				const rotYDiv = 4;
-				
-				for (let index = 0; index < len; index++) 
-				{
-					let x = Math.floor(index / depth);
-					let y = (index / amount) % amount;
-					let z = index % amount;
-
-					dummy.position.set( offset - x, offset - y, offset - z );
-					dummy.rotation.y = ( Math.sin( x / rotYDiv + time ) + Math.sin( y / rotYDiv + time ) + Math.sin( z / rotYDiv + time ) );
-					dummy.rotation.z = dummy.rotation.y * rotZMult;
-
-					dummy.updateMatrix();
-					mesh.setMatrixAt(index, dummy.matrix );
-				}
-
 			}
 
 			function render() {
@@ -198,8 +216,9 @@
 					const offset = ( amount - 1 ) / 2;
 				
 					//renderLoopDefault(amount, offset, time, dummy);
-					//renderLoopTest1(amount, offset, time, dummy);
-					renderLoopTest2(amount, offset, time, dummy);
+					renderLoopTest1(amount, offset, time, dummy);
+					
+
 					mesh.instanceMatrix.needsUpdate = true;
 					mesh.computeBoundingSphere();
 
@@ -208,6 +227,7 @@
 				renderer.render( scene, camera );
 
 			}
+			
 
 		</script>
 
