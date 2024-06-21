@@ -26,16 +26,17 @@
 			let camera, scene, renderer, stats;
 
 			let mesh;
-			const amount = parseInt( window.location.search.slice( 1 ) ) || 10;
-			const count = Math.pow( amount, 3 );
+			const amountPerLine = 50;
+			const count = Math.pow( amountPerLine, 3 );
 			const dummy = new THREE.Object3D();
 
 			init();
 
 			function init() {
 
+				console.log('init');
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 100 );
-				camera.position.set( amount * 0.9, amount * 0.9, amount * 0.9 );
+				camera.position.set( amountPerLine * 0.9, amountPerLine * 0.9, amountPerLine * 0.9 );
 				camera.lookAt( 0, 0, 0 );
 
 				scene = new THREE.Scene();
@@ -93,9 +94,93 @@
 
 			function animate() {
 
-				render();
+				var t0 = performance.now();
+				render();				
+				var t1 = performance.now();
+				console.log("animate time " + (t1 - t0) + " milliseconds.");
 
 				stats.update();
+			}
+
+			function renderLoopDefault(amount, offset, time, dummy)
+			{
+				let i = 0;
+				for ( let x = 0; x < amount; x ++ ) {
+
+					for ( let y = 0; y < amount; y ++ ) {
+
+						for ( let z = 0; z < amount; z ++ ) {
+
+							dummy.position.set( offset - x, offset - y, offset - z );
+							dummy.rotation.y = ( Math.sin( x / 4 + time ) + Math.sin( y / 4 + time ) + Math.sin( z / 4 + time ) );
+							dummy.rotation.z = dummy.rotation.y * 2;
+
+							dummy.updateMatrix();
+
+							mesh.setMatrixAt( i ++, dummy.matrix );
+
+						}
+
+					}
+
+				}
+			}
+
+			function renderLoopTest1(amount, offset, time, dummy)
+			{
+				let i = 0;
+				let vec = dummy.position;
+				let rot = dummy.rotation;
+				let mat = dummy.matrix;
+
+				const rotZMult = 2;
+				const rotYDiv = 4;
+
+				//prev code
+				for ( let x = 0; x < amount; x ++ ) {
+
+					for ( let y = 0; y < amount; y ++ ) {
+
+						for ( let z = 0; z < amount; z ++ ) {
+
+							vec.x = offset - x;
+							vec.y = offset - y;
+							vec.z = offset - z;
+
+							// vec.set( offset - x, offset - y, offset - z );
+							rot.y = ( Math.sin( x / rotYDiv + time ) + Math.sin( y / rotYDiv + time ) + Math.sin( z / rotYDiv + time ) );
+							rot.z = rot.y * rotZMult;
+
+							dummy.updateMatrix();
+
+							mesh.setMatrixAt(i ++, mat);
+
+						}
+					}
+				}
+			}
+
+			function renderLoopTest2(amount, offset, time, dummy)
+			{
+				const len = count;
+				const columns = amount * amount * amount;
+				const depth = amount * amount;
+				const rotZMult = 2;
+				const rotYDiv = 4;
+				
+				for (let index = 0; index < len; index++) 
+				{
+					let x = Math.floor(index / depth);
+					let y = (index / amount) % amount;
+					let z = index % amount;
+
+					dummy.position.set( offset - x, offset - y, offset - z );
+					dummy.rotation.y = ( Math.sin( x / rotYDiv + time ) + Math.sin( y / rotYDiv + time ) + Math.sin( z / rotYDiv + time ) );
+					dummy.rotation.z = dummy.rotation.y * rotZMult;
+
+					dummy.updateMatrix();
+					mesh.setMatrixAt(index, dummy.matrix );
+				}
 
 			}
 
@@ -108,29 +193,13 @@
 					mesh.rotation.x = Math.sin( time / 4 );
 					mesh.rotation.y = Math.sin( time / 2 );
 
-					let i = 0;
+					const amount = amountPerLine;
+					// console.log(amount);
 					const offset = ( amount - 1 ) / 2;
-
-					for ( let x = 0; x < amount; x ++ ) {
-
-						for ( let y = 0; y < amount; y ++ ) {
-
-							for ( let z = 0; z < amount; z ++ ) {
-
-								dummy.position.set( offset - x, offset - y, offset - z );
-								dummy.rotation.y = ( Math.sin( x / 4 + time ) + Math.sin( y / 4 + time ) + Math.sin( z / 4 + time ) );
-								dummy.rotation.z = dummy.rotation.y * 2;
-
-								dummy.updateMatrix();
-
-								mesh.setMatrixAt( i ++, dummy.matrix );
-
-							}
-
-						}
-
-					}
-
+				
+					//renderLoopDefault(amount, offset, time, dummy);
+					//renderLoopTest1(amount, offset, time, dummy);
+					renderLoopTest2(amount, offset, time, dummy);
 					mesh.instanceMatrix.needsUpdate = true;
 					mesh.computeBoundingSphere();
 
