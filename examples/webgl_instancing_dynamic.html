@@ -29,10 +29,12 @@
 			const amountPerLine = 50;
 			const count = Math.pow( amountPerLine, 3 );
 			const data = {
-				isOptimized: false
+				isOptimized: false,
+				performance:'performance'
 			};
 			const dummy = new THREE.Object3D();
 
+			let label;
 			init();
 
 			function init() {
@@ -57,13 +59,14 @@
 					mesh = new THREE.InstancedMesh( geometry, material, count );
 					mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage ); // will be updated every frame
 					scene.add( mesh );
-					mesh.count = count / 2;
+					mesh.count = count / 4;
 					//
 
 					const gui = new GUI();
 					gui.add( mesh, 'count', 0, count );
-					gui.add( data, 'isOptimized', false );
-
+					gui.add( data, 'isOptimized', false );	
+					label = gui.add( data, 'performance');
+					label.disable();
 				});
 
 				//
@@ -100,8 +103,17 @@
 				var t0 = performance.now();
 				render();				
 				var t1 = performance.now();
-				console.log("animate time " + (t1 - t0) + " milliseconds.");
+				// console.log("performance" + (t1 - t0) + " milliseconds.");
+				data.performance = (t1 - t0).toLocaleString(
+						undefined, // leave undefined to use the visitor's browser 
+									// locale or a string like 'en-US' to override it.
+						{ minimumFractionDigits: 2 }) + " milliseconds."
 
+				if(label)
+				{
+					label.updateDisplay();
+				}
+				
 				stats.update();
 			}
 
@@ -202,17 +214,11 @@
 							quaternion.setFromEulerXYZ(finalRotY, rotZ, 0);
 							setMatrixAt(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);						
 						}
-
-					}
-
-					
+					}	
 				}		
 			}
 
-
-
 			function render() {
-
 
 				if ( mesh ) {
 
