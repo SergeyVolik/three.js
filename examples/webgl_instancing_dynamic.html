@@ -26,13 +26,15 @@
 			let camera, scene, renderer, stats;
 
 			let mesh;
-			const amountPerLine = 60;
+			const amountPerLine = 50;
 			const count = Math.pow( amountPerLine, 3 );
+			const data = {
+				isOptimized: false
+			};
 			const dummy = new THREE.Object3D();
 
 			init();
 
-			let test2Array = [];
 			function init() {
 
 				console.log('init');
@@ -55,17 +57,14 @@
 					mesh = new THREE.InstancedMesh( geometry, material, count );
 					mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage ); // will be updated every frame
 					scene.add( mesh );
-
+					mesh.count = count / 2;
 					//
 
 					const gui = new GUI();
 					gui.add( mesh, 'count', 0, count );
+					gui.add( data, 'isOptimized', false );
 
-					for (let index = 0; index < count; index++) {
-						let matrix = new THREE.Matrix4();
-						test2Array.push(matrix);
-					}
-				} );
+				});
 
 				//
 
@@ -95,7 +94,6 @@
 
 			}
 
-			//
 
 			function animate() {
 
@@ -172,12 +170,17 @@
 
 				const rotZMult = 2;
 				const rotYDiv = 4;
-
+				let count = mesh.count;
 				const uniformScale = 1;
 				const matrixSize = 16;
 				let instanceMatArray = mesh.instanceMatrix.array;
 
 				for ( let x = 0; x < amount; x ++ ) {
+
+					if(count <= i)
+					{
+						break;
+					}
 
 					let posX = offsetPos - x;
 					let rotX = Math.sin( x / rotYDiv + time );
@@ -199,13 +202,17 @@
 							quaternion.setFromEulerXYZ(finalRotY, rotZ, 0);
 							setMatrixAt(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);						
 						}
+
 					}
+
+					
 				}		
 			}
 
 
 
 			function render() {
+
 
 				if ( mesh ) {
 
@@ -218,10 +225,15 @@
 					// console.log(amount);
 					const offset = ( amount - 1 ) / 2;
 				
-					//updateAnimationDefault(amount, offset, time, dummy);					
-					updateAnimationWithOptimizations(amount, offset, time);
-					
-
+					if(data.isOptimized)
+					{
+						updateAnimationWithOptimizations(amount, offset, time);
+					}
+					else
+					{
+						updateAnimationDefault(amount, offset, time, dummy);		
+					}
+							
 					mesh.instanceMatrix.needsUpdate = true;
 					mesh.computeBoundingSphere();
 
