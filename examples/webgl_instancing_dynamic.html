@@ -107,7 +107,7 @@
 				stats.update();
 			}
 
-			function renderLoopDefault(amount, offset, time, dummy)
+			function updateAnimationDefault(amount, offset, time, dummy)
 			{
 				let i = 0;
 				for ( let x = 0; x < amount; x ++ ) {
@@ -164,20 +164,18 @@
 
 			
 			let rotation = new THREE.Euler();
+			let quaternion = new THREE.Quaternion();
 		  
-			function renderLoopTest2(amount, offsetPos, time)
+			function updateAnimationWithOptimizations(amount, offsetPos, time)
 			{		
 				let i = 0;
-				let rot = rotation;
 
 				const rotZMult = 2;
 				const rotYDiv = 4;
 
-				let uniformScale = 1;
+				const uniformScale = 1;
 				const matrixSize = 16;
 				let instanceMatArray = mesh.instanceMatrix.array;
-
-				let quaternion = new THREE.Quaternion();
 
 				for ( let x = 0; x < amount; x ++ ) {
 
@@ -192,19 +190,17 @@
 
 						for ( let z = 0; z < amount; z ++ ) {
 							
-							rot.y = (sumRot + Math.sin( z / rotYDiv + time ) );
-							rot.z = rot.y * rotZMult;
+							let finalRotY = (sumRot + Math.sin( z / rotYDiv + time ) );
+							let rotZ = finalRotY * rotZMult;
 							let posZ = offsetPos - z;						
 						
 							i++;
-							quaternion.setFromEuler( rot, false );
-							setMatrixAt(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);
-													
+
+							quaternion.setFromEulerXYZ(finalRotY, rotZ, 0);
+							setMatrixAt(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);						
 						}
 					}
-				}
-			
-				
+				}		
 			}
 
 
@@ -222,8 +218,8 @@
 					// console.log(amount);
 					const offset = ( amount - 1 ) / 2;
 				
-					//renderLoopDefault(amount, offset, time, dummy);					
-					renderLoopTest2(amount, offset, time);
+					//updateAnimationDefault(amount, offset, time, dummy);					
+					updateAnimationWithOptimizations(amount, offset, time);
 					
 
 					mesh.instanceMatrix.needsUpdate = true;
