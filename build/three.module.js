@@ -6598,6 +6598,40 @@ class Matrix4 {
 
 	}
 
+	compose2(posX, posY, posZ, quaternion, uniformScale) {
+
+		const te = this.elements;
+
+		const x = quaternion._x, y = quaternion._y, z = quaternion._z, w = quaternion._w;
+		const x2 = x + x,	y2 = y + y, z2 = z + z;
+		const xx = x * x2, xy = x * y2, xz = x * z2;
+		const yy = y * y2, yz = y * z2, zz = z * z2;
+		const wx = w * x2, wy = w * y2, wz = w * z2;
+
+		te[ 0 ] = ( 1 - ( yy + zz ) ) * uniformScale;
+		te[ 1 ] = ( xy + wz ) * uniformScale;
+		te[ 2 ] = ( xz - wy ) * uniformScale;
+		te[ 3 ] = 0;
+
+		te[ 4 ] = ( xy - wz ) * uniformScale;
+		te[ 5 ] = ( 1 - ( xx + zz ) ) * uniformScale;
+		te[ 6 ] = ( yz + wx ) * uniformScale;
+		te[ 7 ] = 0;
+
+		te[ 8 ] = ( xz + wy ) * uniformScale;
+		te[ 9 ] = ( yz - wx ) * uniformScale;
+		te[ 10 ] = ( 1 - ( xx + yy ) ) * uniformScale;
+		te[ 11 ] = 0;
+
+		te[ 12 ] = posX;
+		te[ 13 ] = posY;
+		te[ 14 ] = posZ;
+		te[ 15 ] = 1;
+
+		return this;
+
+	}
+
 	decompose( position, quaternion, scale ) {
 
 		const te = this.elements;
@@ -7717,12 +7751,16 @@ class Object3D extends EventDispatcher {
 
 	}
 
+	updateMatrix2(x, y, z, rot, unifromcale)
+	{
+		this.matrix.compose2(x,y,z, rot, unifromcale);
+	}
+
 	updateMatrix() {
 
 		this.matrix.compose( this.position, this.quaternion, this.scale );
 
 		this.matrixWorldNeedsUpdate = true;
-
 	}
 
 	updateMatrixWorld( force ) {
@@ -29270,13 +29308,19 @@ class WebGLRenderer {
 
 				renderer.setMode( _gl.POINTS );
 
-			} else if ( object.isSprite ) {
+			} 
+			else if ( object.isSprite ) {
 
 				renderer.setMode( _gl.TRIANGLES );
 
 			}
+			
+			if ( object.isInstancedMesh ) {
 
-			if ( object.isBatchedMesh ) {
+				renderer.renderInstances( drawStart, drawCount, object.count );
+
+			}
+			else if ( object.isBatchedMesh ) {
 
 				if ( object._multiDrawInstances !== null ) {
 
@@ -29306,11 +29350,7 @@ class WebGLRenderer {
 
 				}
 
-			} else if ( object.isInstancedMesh ) {
-
-				renderer.renderInstances( drawStart, drawCount, object.count );
-
-			} else if ( geometry.isInstancedBufferGeometry ) {
+			}  else if ( geometry.isInstancedBufferGeometry ) {
 
 				const maxInstanceCount = geometry._maxInstanceCount !== undefined ? geometry._maxInstanceCount : Infinity;
 				const instanceCount = Math.min( geometry.instanceCount, maxInstanceCount );
@@ -29541,7 +29581,7 @@ class WebGLRenderer {
 		// Rendering
 
 		this.render = function ( scene, camera ) {
-
+			
 			if ( camera !== undefined && camera.isCamera !== true ) {
 
 				console.error( 'THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.' );
@@ -33108,10 +33148,36 @@ class InstancedMesh extends Mesh {
 
 	}
 
+	toArray( array = [], offset = 0, te = [] ) {
+
+		array[ offset ] = te[ 0 ];
+		array[ offset + 1 ] = te[ 1 ];
+		array[ offset + 2 ] = te[ 2 ];
+		array[ offset + 3 ] = te[ 3 ];
+		
+		array[ offset + 4 ] = te[ 4 ];
+		array[ offset + 5 ] = te[ 5 ];
+		array[ offset + 6 ] = te[ 6 ];
+		array[ offset + 7 ] = te[ 7 ];
+		
+		array[ offset + 8 ] = te[ 8 ];
+		array[ offset + 9 ] = te[ 9 ];
+		array[ offset + 10 ] = te[ 10 ];
+		array[ offset + 11 ] = te[ 11 ];
+		
+		array[ offset + 12 ] = te[ 12 ];
+		array[ offset + 13 ] = te[ 13 ];
+		array[ offset + 14 ] = te[ 14 ];
+		array[ offset + 15 ] = te[ 15 ];
+		
+		return array;
+		
+	}
+
 	setMatrixAt( index, matrix ) {
 
-		matrix.toArray( this.instanceMatrix.array, index * 16 );
-
+		// matrix.toArray( this.instanceMatrix.array, index * 16 );
+		this.toArray( this.instanceMatrix.array, index * 16, matrix.elements);
 	}
 
 	setMorphAt( index, object ) {
@@ -47043,14 +47109,14 @@ class ObjectLoader extends Loader {
 
 				break;
 
-			case 'Mesh':
+			// case 'Mesh':
 
-				geometry = getGeometry( data.geometry );
-				material = getMaterial( data.material );
+			// 	geometry = getGeometry( data.geometry );
+			// 	material = getMaterial( data.material );
 
-				object = new Mesh( geometry, material );
+			// 	object = new Mesh( geometry, material );
 
-				break;
+			// 	break;
 
 			case 'InstancedMesh':
 

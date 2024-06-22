@@ -26,12 +26,13 @@
 			let camera, scene, renderer, stats;
 
 			let mesh;
-			const amountPerLine = 50;
+			const amountPerLine = 60;
 			const count = Math.pow( amountPerLine, 3 );
 			const dummy = new THREE.Object3D();
 
 			init();
 
+			let test2Array = [];
 			function init() {
 
 				console.log('init');
@@ -60,6 +61,10 @@
 					const gui = new GUI();
 					gui.add( mesh, 'count', 0, count );
 
+					for (let index = 0; index < count; index++) {
+						let matrix = new THREE.Matrix4();
+						test2Array.push(matrix);
+					}
 				} );
 
 				//
@@ -97,7 +102,7 @@
 				var t0 = performance.now();
 				render();				
 				var t1 = performance.now();
-				// console.log("animate time " + (t1 - t0) + " milliseconds.");
+				console.log("animate time " + (t1 - t0) + " milliseconds.");
 
 				stats.update();
 			}
@@ -124,42 +129,85 @@
 				}
 			}
 
-			function renderLoopTest1(amount, offset, time, dummy)
-			{
+			function setMatrixAt( posX, posY, posZ, quaternion, uniformScale, array, index) {
+
+				const te = array;
+				const offset = index * 16;
+				const x = quaternion._x, y = quaternion._y, z = quaternion._z, w = quaternion._w;
+				const x2 = x + x,	y2 = y + y, z2 = z + z;
+				const xx = x * x2, xy = x * y2, xz = x * z2;
+				const yy = y * y2, yz = y * z2, zz = z * z2;
+				const wx = w * x2, wy = w * y2, wz = w * z2;
+
+				te[offset + 0 ] = ( 1 - ( yy + zz ) ) * uniformScale;
+				te[offset +  1 ] = ( xy + wz ) * uniformScale;
+				te[offset +  2 ] = ( xz - wy ) * uniformScale;
+				te[offset +  3 ] = 0;
+
+				te[offset +  4 ] = ( xy - wz ) * uniformScale;
+				te[offset +  5 ] = ( 1 - ( xx + zz ) ) * uniformScale;
+				te[offset +  6 ] = ( yz + wx ) * uniformScale;
+				te[offset +  7 ] = 0;
+
+				te[offset + 8 ] = ( xz + wy ) * uniformScale;
+				te[offset +  9 ] = ( yz - wx ) * uniformScale;
+				te[offset +  10 ] = ( 1 - ( xx + yy ) ) * uniformScale;
+				te[offset +  11 ] = 0;
+
+				te[offset + 12 ] = posX;
+				te[offset +  13 ] = posY;
+				te[offset +  14 ] = posZ;
+				te[offset +  15 ] = 1;
+
+				return te;
+			}
+
+			
+			let rotation = new THREE.Euler();
+		  
+			function renderLoopTest2(amount, offsetPos, time)
+			{		
 				let i = 0;
-				let vec = dummy.position;
-				let rot = dummy.rotation;
-				let mat = dummy.matrix;
+				let rot = rotation;
 
 				const rotZMult = 2;
 				const rotYDiv = 4;
 
-				//prev code
+				let uniformScale = 1;
+				const matrixSize = 16;
+				let instanceMatArray = mesh.instanceMatrix.array;
+
+				let quaternion = new THREE.Quaternion();
+
 				for ( let x = 0; x < amount; x ++ ) {
 
-					let offsetX = offset - x;
+					let posX = offsetPos - x;
 					let rotX = Math.sin( x / rotYDiv + time );
 
 					for ( let y = 0; y < amount; y ++ ) {
 
-						let offsetY = offset - y;
+						let posY = offsetPos - y;
 						let rotY = Math.sin( y / rotYDiv + time );
 						let sumRot = rotX + rotY;
-						for ( let z = 0; z < amount; z ++ ) {
 
-							vec.x = offsetX;
-							vec.y = offsetY;
-							vec.z = offset - z;
+						for ( let z = 0; z < amount; z ++ ) {
+							
 							rot.y = (sumRot + Math.sin( z / rotYDiv + time ) );
 							rot.z = rot.y * rotZMult;
-
-							dummy.updateMatrix();
-
-							mesh.setMatrixAt(i ++, mat);
+							let posZ = offsetPos - z;						
+						
+							i++;
+							quaternion.setFromEuler( rot, false );
+							setMatrixAt(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);
+													
 						}
 					}
 				}
+			
+				
 			}
+
+
 
 			function render() {
 
@@ -167,15 +215,15 @@
 
 					const time = Date.now() * 0.001;
 
-					mesh.rotation.x = Math.sin( time / 4 );
-					mesh.rotation.y = Math.sin( time / 2 );
+					// mesh.rotation.x = Math.sin( time / 4 );
+					// mesh.rotation.y = Math.sin( time / 2 );
 
 					const amount = amountPerLine;
 					// console.log(amount);
 					const offset = ( amount - 1 ) / 2;
 				
-					//renderLoopDefault(amount, offset, time, dummy);
-					renderLoopTest1(amount, offset, time, dummy);
+					//renderLoopDefault(amount, offset, time, dummy);					
+					renderLoopTest2(amount, offset, time);
 					
 
 					mesh.instanceMatrix.needsUpdate = true;
