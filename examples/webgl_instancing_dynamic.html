@@ -36,7 +36,7 @@
 			function init() {
 
 				console.log('init');
-				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 100 );
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 500 );
 				camera.position.set( amountPerLine * 0.9, amountPerLine * 0.9, amountPerLine * 0.9 );
 				camera.lookAt( 0, 0, 0 );
 
@@ -211,8 +211,8 @@
 
 					const time = Date.now() * 0.001;
 
-					// mesh.rotation.x = Math.sin( time / 4 );
-					// mesh.rotation.y = Math.sin( time / 2 );
+					mesh.rotation.x = Math.sin( time / 4 );
+					mesh.rotation.y = Math.sin( time / 2 );
 
 					const amount = amountPerLine;
 					// console.log(amount);
@@ -228,8 +228,7 @@
 				}
 
 				renderer.render( scene, camera );
-			}
-			
+			}			
 
 		</script>
 
