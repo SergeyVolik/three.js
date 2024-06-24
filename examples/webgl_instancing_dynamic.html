@@ -107,7 +107,7 @@
 				data.performance = (t1 - t0).toLocaleString(
 						undefined, // leave undefined to use the visitor's browser 
 									// locale or a string like 'en-US' to override it.
-						{ minimumFractionDigits: 2 }) + " milliseconds."
+						{ minimumFractionDigits: 2 }) + " ms."
 
 				if(label)
 				{
@@ -176,6 +176,25 @@
 			let rotation = new THREE.Euler();
 			let quaternion = new THREE.Quaternion();
 		  
+			function quaterionFromEulerXYZ(quaternion, x, y, z)
+			{
+				const cos = Math.cos;
+				const sin = Math.sin;
+
+				const c1 = cos( x / 2 );
+				const c2 = cos( y / 2 );
+				const c3 = cos( z / 2 );
+
+				const s1 = sin( x / 2 );
+				const s2 = sin( y / 2 );
+				const s3 = sin( z / 2 );
+				
+				quaternion._x = s1 * c2 * c3 + c1 * s2 * s3;
+				quaternion._y = c1 * s2 * c3 - s1 * c2 * s3;
+				quaternion._z = c1 * c2 * s3 + s1 * s2 * c3;
+				quaternion._w = c1 * c2 * c3 - s1 * s2 * s3;
+			}
+
 			function updateAnimationWithOptimizations(amount, offsetPos, time)
 			{		
 				let i = 0;
@@ -189,16 +208,14 @@
 
 				for ( let x = 0; x < amount; x ++ ) {
 
-					if(count <= i)
-					{
+					if(count <= i)					
 						break;
-					}
-
+					
 					let posX = offsetPos - x;
 					let rotX = Math.sin( x / rotYDiv + time );
 
-					for ( let y = 0; y < amount; y ++ ) {
-
+					for ( let y = 0; y < amount; y ++ ) 
+					{
 						let posY = offsetPos - y;
 						let rotY = Math.sin( y / rotYDiv + time );
 						let sumRot = rotX + rotY;
@@ -210,9 +227,9 @@
 							let posZ = offsetPos - z;						
 						
 							i++;
-
-							quaternion.setFromEulerXYZ(finalRotY, rotZ, 0);
-							setMatrixAt(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);						
+							
+							quaterionFromEulerXYZ(quaternion, finalRotY, rotZ, 0);
+							setMatrixAt(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);		
 						}
 					}	
 				}		
