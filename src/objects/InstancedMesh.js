@@ -60,6 +60,7 @@ class InstancedMesh extends Mesh {
 
 		this.boundingBox.makeEmpty();
 
+		// optimization: computeBoundingBox for instanced objects
 		// for ( let i = 0; i < count; i ++ ) {
 
 		// 	this.getMatrixAt( i, _instanceLocalMatrix );
@@ -91,6 +92,7 @@ class InstancedMesh extends Mesh {
 
 		this.boundingSphere.makeEmpty();
 
+		// optimization: computeBoundingBox for instanced objects
 		// for ( let i = 0; i < count; i ++ ) {
 
 		// 	this.getMatrixAt( i, _instanceLocalMatrix );
