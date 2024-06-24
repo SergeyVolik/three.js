@@ -30,7 +30,7 @@
 			const count = Math.pow( amountPerLine, 3 );
 			const data = {
 				isOptimized: false,
-				performance:'performance'
+				CPUPerformance:'performance'
 			};
 			const dummy = new THREE.Object3D();
 
@@ -66,7 +66,7 @@
 					const gui = new GUI();
 					gui.add( mesh, 'count', 0, count );
 					gui.add( data, 'isOptimized', false );	
-					label = gui.add( data, 'performance');
+					label = gui.add( data, 'CPUPerformance');
 					label.disable();
 				});
 
@@ -105,7 +105,7 @@
 				render();				
 				var t1 = performance.now();
 				// console.log("performance" + (t1 - t0) + " milliseconds.");
-				data.performance = (t1 - t0).toLocaleString(
+				data.CPUPerformance = (t1 - t0).toLocaleString(
 						undefined, // leave undefined to use the visitor's browser 
 									// locale or a string like 'en-US' to override it.
 						{ minimumFractionDigits: 2 }) + " ms."
@@ -134,15 +134,13 @@
 							dummy.updateMatrix();
 
 							mesh.setMatrixAt( i ++, dummy.matrix );
-
 						}
 					}
 				}
 			}
 
-			function setMatrixInInstanceMashArray( posX, posY, posZ, quaternion, uniformScale, array, index) {
-
-				const te = array;
+			function setMatrixInInstanceMashArray(posX, posY, posZ, quaternion, uniformScale, array, index) {
+			
 				const offset = index * 16;
 				const x = quaternion._x, y = quaternion._y, z = quaternion._z, w = quaternion._w;
 				const x2 = x + x,	y2 = y + y, z2 = z + z;
@@ -150,27 +148,25 @@
 				const yy = y * y2, yz = y * z2, zz = z * z2;
 				const wx = w * x2, wy = w * y2, wz = w * z2;
 
-				te[offset + 0 ] = ( 1 - ( yy + zz ) ) * uniformScale;
-				te[offset +  1 ] = ( xy + wz ) * uniformScale;
-				te[offset +  2 ] = ( xz - wy ) * uniformScale;
-				te[offset +  3 ] = 0;
+				array[offset + 0 ] = ( 1 - ( yy + zz ) ) * uniformScale;
+				array[offset +  1 ] = ( xy + wz ) * uniformScale;
+				array[offset +  2 ] = ( xz - wy ) * uniformScale;
+				array[offset +  3 ] = 0;
 
-				te[offset +  4 ] = ( xy - wz ) * uniformScale;
-				te[offset +  5 ] = ( 1 - ( xx + zz ) ) * uniformScale;
-				te[offset +  6 ] = ( yz + wx ) * uniformScale;
-				te[offset +  7 ] = 0;
+				array[offset +  4 ] = ( xy - wz ) * uniformScale;
+				array[offset +  5 ] = ( 1 - ( xx + zz ) ) * uniformScale;
+				array[offset +  6 ] = ( yz + wx ) * uniformScale;
+				array[offset +  7 ] = 0;
 
-				te[offset + 8 ] = ( xz + wy ) * uniformScale;
-				te[offset +  9 ] = ( yz - wx ) * uniformScale;
-				te[offset +  10 ] = ( 1 - ( xx + yy ) ) * uniformScale;
-				te[offset +  11 ] = 0;
+				array[offset + 8 ] = ( xz + wy ) * uniformScale;
+				array[offset +  9 ] = ( yz - wx ) * uniformScale;
+				array[offset +  10 ] = ( 1 - ( xx + yy ) ) * uniformScale;
+				array[offset +  11 ] = 0;
 
-				te[offset + 12 ] = posX;
-				te[offset +  13 ] = posY;
-				te[offset +  14 ] = posZ;
-				te[offset +  15 ] = 1;
-
-				return te;
+				array[offset + 12 ] = posX;
+				array[offset +  13 ] = posY;
+				array[offset +  14 ] = posZ;
+				array[offset +  15 ] = 1;
 			}
 
 			
