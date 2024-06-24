@@ -60,15 +60,15 @@ class InstancedMesh extends Mesh {
 
 		this.boundingBox.makeEmpty();
 
-		for ( let i = 0; i < count; i ++ ) {
+		// for ( let i = 0; i < count; i ++ ) {
 
-			this.getMatrixAt( i, _instanceLocalMatrix );
+		// 	this.getMatrixAt( i, _instanceLocalMatrix );
 
-			_box3.copy( geometry.boundingBox ).applyMatrix4( _instanceLocalMatrix );
+		// 	_box3.copy( geometry.boundingBox ).applyMatrix4( _instanceLocalMatrix );
 
-			this.boundingBox.union( _box3 );
+		// 	this.boundingBox.union( _box3 );
 
-		}
+		// }
 
 	}
 
@@ -91,15 +91,15 @@ class InstancedMesh extends Mesh {
 
 		this.boundingSphere.makeEmpty();
 
-		for ( let i = 0; i < count; i ++ ) {
+		// for ( let i = 0; i < count; i ++ ) {
 
-			this.getMatrixAt( i, _instanceLocalMatrix );
+		// 	this.getMatrixAt( i, _instanceLocalMatrix );
 
-			_sphere.copy( geometry.boundingSphere ).applyMatrix4( _instanceLocalMatrix );
+		// 	_sphere.copy( geometry.boundingSphere ).applyMatrix4( _instanceLocalMatrix );
 
-			this.boundingSphere.union( _sphere );
+		// 	this.boundingSphere.union( _sphere );
 
-		}
+		// }
 
 	}
 
