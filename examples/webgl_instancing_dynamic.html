@@ -53,6 +53,7 @@
 					geometry.scale( 0.5, 0.5, 0.5 );
 
 					const material = new THREE.MeshNormalMaterial();
+					
 					// check overdraw
 					// let material = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.1, transparent: true } );
 
@@ -139,7 +140,7 @@
 				}
 			}
 
-			function setMatrixAt( posX, posY, posZ, quaternion, uniformScale, array, index) {
+			function setMatrixInInstanceMashArray( posX, posY, posZ, quaternion, uniformScale, array, index) {
 
 				const te = array;
 				const offset = index * 16;
@@ -173,7 +174,6 @@
 			}
 
 			
-			let rotation = new THREE.Euler();
 			let quaternion = new THREE.Quaternion();
 		  
 			function quaterionFromEulerXYZ(quaternion, x, y, z)
@@ -201,7 +201,7 @@
 
 				const rotZMult = 2;
 				const rotYDiv = 4;
-				let count = mesh.count;
+				const count = mesh.count;
 				const uniformScale = 1;
 				const matrixSize = 16;
 				let instanceMatArray = mesh.instanceMatrix.array;
@@ -228,8 +228,8 @@
 						
 							i++;
 							
-							quaterionFromEulerXYZ(quaternion, finalRotY, rotZ, 0);
-							setMatrixAt(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);		
+							quaterionFromEulerXYZ(quaternion, 0, finalRotY, rotZ);
+							setMatrixInInstanceMashArray(posX, posY, posZ, quaternion, uniformScale, instanceMatArray, i);		
 						}
 					}	
 				}		
@@ -245,15 +245,12 @@
 					mesh.rotation.y = Math.sin( time / 2 );
 
 					const amount = amountPerLine;
-					// console.log(amount);
 					const offset = ( amount - 1 ) / 2;
 				
-					if(data.isOptimized)
-					{
+					if(data.isOptimized) {
 						updateAnimationWithOptimizations(amount, offset, time);
 					}
-					else
-					{
+					else {
 						updateAnimationDefault(amount, offset, time, dummy);		
 					}
 							

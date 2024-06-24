@@ -33148,36 +33148,10 @@ class InstancedMesh extends Mesh {
 
 	}
 
-	toArray( array = [], offset = 0, te = [] ) {
-
-		array[ offset ] = te[ 0 ];
-		array[ offset + 1 ] = te[ 1 ];
-		array[ offset + 2 ] = te[ 2 ];
-		array[ offset + 3 ] = te[ 3 ];
-		
-		array[ offset + 4 ] = te[ 4 ];
-		array[ offset + 5 ] = te[ 5 ];
-		array[ offset + 6 ] = te[ 6 ];
-		array[ offset + 7 ] = te[ 7 ];
-		
-		array[ offset + 8 ] = te[ 8 ];
-		array[ offset + 9 ] = te[ 9 ];
-		array[ offset + 10 ] = te[ 10 ];
-		array[ offset + 11 ] = te[ 11 ];
-		
-		array[ offset + 12 ] = te[ 12 ];
-		array[ offset + 13 ] = te[ 13 ];
-		array[ offset + 14 ] = te[ 14 ];
-		array[ offset + 15 ] = te[ 15 ];
-		
-		return array;
-		
-	}
 
 	setMatrixAt( index, matrix ) {
 
-		// matrix.toArray( this.instanceMatrix.array, index * 16 );
-		this.toArray( this.instanceMatrix.array, index * 16, matrix.elements);
+		matrix.toArray( this.instanceMatrix.array, index * 16 );		
 	}
 
 	setMorphAt( index, object ) {
